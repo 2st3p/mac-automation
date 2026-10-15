@@ -12,15 +12,15 @@ Raycast script command or macOS Quick Action here instead of in a one-off folder
 
 ## Set up a Mac
 
-1. Clone the repo: `git clone git@github.com:2st3p/mac-automation.git ~/mac-automation`
-2. Run `~/mac-automation/install.sh`.
+1. Clone the repo: `git clone git@github.com:2st3p/mac-automation.git /Users/Shared/mac-automation`
+2. Run `/Users/Shared/mac-automation/install.sh`.
 3. First Mac only: in Raycast Settings, open Script Commands, click + next to
-   Script Folders, and add `/Users/Shared/raycast-scripts`. Raycast Cloud Sync
+   Script Folders, and add `/Users/Shared/mac-automation/raycast`. Raycast Cloud Sync
    copies the folder and its hotkeys to your other Macs.
 
-`install.sh` links `/Users/Shared/raycast-scripts` to `raycast/`. Raycast
-stores folder paths as absolute paths, and the home folder name differs between
-Macs, so every Mac uses this fixed path.
+The repo must live at `/Users/Shared/mac-automation`. Raycast stores folder
+paths as absolute paths, and the home folder name differs between Macs, so every
+Mac uses this fixed path. A symlink does not work because Raycast resolves it.
 
 ## Commands
 

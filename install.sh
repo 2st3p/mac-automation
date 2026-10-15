@@ -3,18 +3,17 @@
 set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")" && pwd)"
-LINK="/Users/Shared/raycast-scripts"
+EXPECTED="/Users/Shared/mac-automation"
 
-# Raycast script folder. Raycast Cloud Sync stores folder paths as absolute
-# paths, and home folder names differ between Macs, so every Mac exposes the
-# scripts at the same fixed path.
-if [[ -e "$LINK" && ! -L "$LINK" ]]; then
-  echo "error: $LINK exists and is not a symlink. Move it and run again." >&2
+# Raycast Cloud Sync stores script folders as absolute paths, and home folder
+# names differ between Macs. The repo lives at the same path on every Mac so the
+# synced folder works everywhere. Raycast resolves symlinks, so a link does not help.
+if [[ "$REPO" != "$EXPECTED" ]]; then
+  echo "error: clone this repo to $EXPECTED, not $REPO." >&2
   exit 1
 fi
-ln -sfn "$REPO/raycast" "$LINK"
 chmod +x "$REPO"/raycast/*
-echo "Raycast scripts: $LINK -> $REPO/raycast"
+echo "Raycast scripts: $REPO/raycast"
 
 # Quick Actions. macOS does not load symlinked workflows reliably, so copy them.
 mkdir -p "$HOME/Library/Services"
