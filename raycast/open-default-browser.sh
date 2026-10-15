@@ -8,7 +8,7 @@
 # Optional Raycast parameters
 # @raycast.icon 🌐
 # @raycast.packageName Browser
-# @raycast.description Launch or focus this machine's default browser. Opens no tab, URL, or blank page.
+# @raycast.description Show this machine's default browser, or hide it if it is already in front. Opens no tab, URL, or blank page.
 # @raycast.author Erik Kernan
 
 set -uo pipefail
@@ -49,6 +49,14 @@ APP_PATH="$(resolve_via_nsworkspace)"
 if [[ ! -d "$APP_PATH" ]]; then
   echo "Could not determine the default browser"
   exit 1
+fi
+
+# Match Raycast's Toggle Visibility setting for app hotkeys: hide the browser when
+# it is already in front. NSRunningApplication.hide needs no Accessibility access.
+FRONT_PATH="$(osascript -l JavaScript -e 'ObjC.import("AppKit"); ObjC.unwrap($.NSWorkspace.sharedWorkspace.frontmostApplication.bundleURL.path)' 2>/dev/null)"
+if [[ "$FRONT_PATH" == "$APP_PATH" ]]; then
+  osascript -l JavaScript -e 'ObjC.import("AppKit"); $.NSWorkspace.sharedWorkspace.frontmostApplication.hide' >/dev/null 2>&1
+  exit 0
 fi
 
 # `open -a` with no file or URL argument is the no-side-effect activation path:

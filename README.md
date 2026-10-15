@@ -31,7 +31,7 @@ Mac uses this fixed path. A symlink does not work because Raycast resolves it.
 
 | Name | Type | Shortcut | What it does |
 |---|---|---|---|
-| Open Default Browser | Raycast | Hyper+A (set in Raycast) | Opens or focuses this Mac's default browser |
+| Open Default Browser | Raycast | Hyper+A (set in Raycast) | Shows this Mac's default browser, or hides it if it is already in front |
 | Archived Tabs | Raycast | none | Opens the archived tabs list in Arc |
 | Copy URL | Chrome extension | Cmd+Shift+C | Copies the current tab's URL and shows a toast |
 
