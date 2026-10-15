@@ -1,4 +1,4 @@
 # Keyboard shortcuts for the Quick Actions in this folder.
 # Format: <menu item name>|<key equivalent>
 # Key equivalent symbols: @ = Command, $ = Shift, ~ = Option, ^ = Control.
-Copy URL|@$c
+# Chrome's built-in shortcuts win over Quick Action shortcuts, so bind Chrome keys with an extension in chrome/.

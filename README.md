@@ -1,20 +1,25 @@
 # mac-automation
 
 Personal Mac automation shared across work and personal Macs. Put every new
-Raycast script command or macOS Quick Action here instead of in a one-off folder.
+Raycast script command, macOS Quick Action, or Chrome extension here instead of
+in a one-off folder.
 
 ## Layout
 
 - `raycast/`: Raycast script commands. Each file carries `@raycast.*` metadata.
 - `services/`: macOS Quick Actions (`.workflow` bundles).
 - `services/hotkeys.txt`: keyboard shortcuts for the Quick Actions.
+- `chrome/`: unpacked Chrome extensions, for shortcuts inside Chrome.
 - `install.sh`: sets up this Mac. Running it again changes nothing.
 
 ## Set up a Mac
 
 1. Clone the repo: `git clone git@github.com:2st3p/mac-automation.git /Users/Shared/mac-automation`
 2. Run `/Users/Shared/mac-automation/install.sh`.
-3. First Mac only: in Raycast Settings, open Script Commands, click + next to
+3. In each Chrome profile, load every folder in `chrome/`: open
+   `chrome://extensions`, turn on Developer mode, click Load unpacked, and pick
+   the folder. Then open `chrome://extensions/shortcuts` and check each shortcut.
+4. First Mac only: in Raycast Settings, open Script Commands, click + next to
    Script Folders, and add `/Users/Shared/mac-automation/raycast`. Raycast Cloud Sync
    copies the folder and its hotkeys to your other Macs.
 
@@ -28,10 +33,11 @@ Mac uses this fixed path. A symlink does not work because Raycast resolves it.
 |---|---|---|---|
 | Open Default Browser | Raycast | Hyper+A (set in Raycast) | Opens or focuses this Mac's default browser |
 | Archived Tabs | Raycast | none | Opens the archived tabs list in Arc |
-| Copy URL | Quick Action, Chrome only | Cmd+Shift+C | Copies the current Chrome tab's URL |
+| Copy URL | Chrome extension | Cmd+Shift+C | Copies the current tab's URL and shows a toast |
 
-Copy URL asks once for permission to control Google Chrome. If you denied it,
-turn it on in System Settings > Privacy & Security > Automation.
+Copy URL replaces Chrome's Cmd+Shift+C (Inspect Elements). Inspect Elements
+keeps Cmd+Option+C, the same layout Dia uses. A Quick Action cannot take this
+key, because Chrome's built-in shortcut runs first.
 
 ## Rules
 
@@ -39,3 +45,4 @@ turn it on in System Settings > Privacy & Security > Automation.
 - Name files in kebab-case.
 - After adding a Quick Action, add its shortcut to `services/hotkeys.txt` and run `install.sh`.
 - After adding a Raycast script, run Raycast's "Reload Script Commands".
+- After changing a Chrome extension, click its reload button in `chrome://extensions`.

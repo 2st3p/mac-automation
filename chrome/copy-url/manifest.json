@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Copy URL",
+  "version": "1.0.0",
+  "description": "Copies the current tab's URL. Cmd+Shift+C on Mac, Ctrl+Shift+C elsewhere.",
+  "permissions": ["activeTab", "offscreen", "scripting"],
+  "background": { "service_worker": "background.js" },
+  "commands": {
+    "copy-url": {
+      "suggested_key": { "default": "Ctrl+Shift+C", "mac": "Command+Shift+C" },
+      "description": "Copy the current tab's URL"
+    }
+  }
+}
