@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tab Tools settings</title>
+<style>
+  :root { --bg: #fff; --fg: #1d1d1f; --muted: #6e6e73; --line: #e5e5ea; --accent: #0a66d8; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #1c1c1e; --fg: #f2f2f7; --muted: #98989d; --line: #38383a; --accent: #4c9bff; }
+  }
+  body { background: var(--bg); color: var(--fg); font: 14px/1.5 -apple-system, BlinkMacSystemFont, sans-serif;
+         max-width: 720px; margin: 32px auto; padding: 0 16px; }
+  h1 { font-size: 20px; margin: 0 0 24px; }
+  h2 { font-size: 15px; margin: 32px 0 8px; }
+  p.note { color: var(--muted); margin: 4px 0 12px; }
+  input[type=number] { width: 64px; font: inherit; }
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 6px 8px 6px 0; border-top: 1px solid var(--line); vertical-align: top; }
+  td.url { color: var(--muted); word-break: break-all; font-size: 12px; }
+  td.when { color: var(--muted); white-space: nowrap; font-size: 12px; }
+  a { color: var(--accent); }
+  button { font: inherit; }
+  .empty { color: var(--muted); }
+</style>
+</head>
+<body>
+<h1>Tab Tools</h1>
+
+<h2>Close unused tabs</h2>
+<label><input type="checkbox" id="autoClose"> Close tabs I have not opened for
+  <input type="number" id="hours" min="1" step="1"> hours</label>
+<p class="note">Pinned tabs, tabs in a group, tabs playing sound, and the front tab of each window stay open.
+  Time while the Mac sleeps or Chrome is closed does not count.</p>
+
+<h2>Recently closed by Tab Tools</h2>
+<div id="closed"></div>
+<p><button id="clearClosed">Clear list</button></p>
+
+<h2>Tab names you set</h2>
+<p class="note">Right-click a page and choose Rename tab, or press the rename shortcut. An empty name removes it.</p>
+<div id="names"></div>
+
+<script src="options.js"></script>
+</body>
+</html>
