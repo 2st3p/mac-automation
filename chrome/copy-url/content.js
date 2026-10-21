@@ -16,17 +16,25 @@
 
   const meta = (sel) => document.querySelector(sel)?.content?.trim() || "";
 
+  const visible = (sel) =>
+    [...document.querySelectorAll(sel)].filter((el) => el.checkVisibility?.() !== false);
+  const text = (el) => el.innerText || el.textContent;
+
+  // Many apps put the page name in an h2 or h3 at the top instead of an h1.
+  // Take the largest of those within the first 500 pixels of the page.
+  function topHeadings() {
+    return visible('h2, h3, [role="heading"][aria-level="2"]')
+      .map((el) => ({ el, top: el.getBoundingClientRect().top + scrollY }))
+      .filter((x) => x.top < 500)
+      .sort((a, b) => parseFloat(getComputedStyle(b.el).fontSize) - parseFloat(getComputedStyle(a.el).fontSize) || a.top - b.top)
+      .slice(0, 3)
+      .map((x) => text(x.el));
+  }
+
   function headings() {
-    const visibleText = (sel) =>
-      [...document.querySelectorAll(sel)]
-        .filter((el) => el.checkVisibility?.() !== false)
-        .slice(0, 3)
-        .map((el) => el.innerText || el.textContent);
     return [
-      ...visibleText("h1"),
-      ...visibleText('[role="heading"][aria-level="1"]'),
-      meta('meta[property="og:title"]'),
-      meta('meta[name="twitter:title"]'),
+      ...visible("h1").slice(0, 3).map(text),
+      ...visible('[role="heading"][aria-level="1"]').slice(0, 3).map(text),
     ].filter(Boolean);
   }
 
@@ -44,6 +52,8 @@
       title: pageTitle,
       siteName: meta('meta[property="og:site_name"]') || meta('meta[name="application-name"]'),
       headings: headings(),
+      subheadings: topHeadings().filter(Boolean),
+      shareTitles: [meta('meta[property="og:title"]'), meta('meta[name="twitter:title"]')].filter(Boolean),
     };
     const sig = JSON.stringify(page);
     if (sig === lastReport) return;

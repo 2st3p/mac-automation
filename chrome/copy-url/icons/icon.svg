@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- A browser window whose front tab carries a name, and a pencil for renaming. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#4338CA"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="120" height="120" rx="28" fill="url(#bg)"/>
+  <!-- Back tab. -->
+  <path d="M80 54V44a6 6 0 0 1 6-6h12a6 6 0 0 1 6 6v10Z" fill="#fff" opacity=".45"/>
+  <!-- Front tab, joined to the window below it. -->
+  <path d="M18 54c5 0 8-3 8-8v-6a8 8 0 0 1 8-8h32a8 8 0 0 1 8 8v6c0 5 3 8 8 8Z" fill="#fff"/>
+  <rect x="20" y="54" width="88" height="48" rx="8" fill="#fff"/>
+  <rect x="20" y="52" width="60" height="10" fill="#fff"/>
+  <!-- The tab's icon and name. -->
+  <circle cx="38" cy="43" r="5" fill="#4F6BF0"/>
+  <rect x="47" y="40" width="20" height="6" rx="3" fill="#4F6BF0"/>
+  <!-- Page lines. -->
+  <rect x="32" y="68" width="40" height="6" rx="3" fill="#C7D2FE"/>
+  <rect x="32" y="82" width="26" height="6" rx="3" fill="#C7D2FE"/>
+  <!-- Pencil. -->
+  <g transform="rotate(45 94 84)">
+    <rect x="87" y="56" width="14" height="40" rx="2" fill="#F59E0B" stroke="#3730A3" stroke-width="4"/>
+    <rect x="87" y="56" width="14" height="9" rx="2" fill="#FDA4AF" stroke="#3730A3" stroke-width="4"/>
+    <path d="M87 96h14l-7 12Z" fill="#FDE68A" stroke="#3730A3" stroke-width="4" stroke-linejoin="round"/>
+  </g>
+</svg>

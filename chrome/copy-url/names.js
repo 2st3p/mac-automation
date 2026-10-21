@@ -9,7 +9,18 @@ const GENERIC_WORDS = new Set([
   "home", "dashboard", "dashboards", "untitled", "loading", "new", "tab", "page",
   "app", "welcome", "overview", "explore", "settings", "login", "sign", "in",
   "the", "of", "and", "a", "my", "workspace", "inbox",
+  // Dates, so a heading like "Tue, Oct 20" is not taken for a page name.
+  "today", "yesterday", "tomorrow",
+  "mon", "tue", "wed", "thu", "fri", "sat", "sun",
+  "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
+  "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "sept", "oct", "nov", "dec",
+  "january", "february", "march", "april", "june", "july", "august", "september",
+  "october", "november", "december",
 ]);
+
+// Home pages greet you ("Good afternoon, Erik", "Welcome to Drive"). A short
+// greeting says nothing about the page.
+const GREETING = /^\s*(good (morning|afternoon|evening)|hello|hi|hey|welcome)\b/i;
 
 // Host parts that name no site.
 const HOST_NOISE = new Set(["www", "com", "net", "org", "io", "app", "co", "dev", "cloud"]);
@@ -54,11 +65,12 @@ function siteWords(rawUrl, siteName) {
   return set;
 }
 
-// A title is vague when it is empty, or when it has at most 3 words and every
-// word is the site's name, a generic word, or a number.
+// A title is vague when it is empty, a greeting of at most 5 words, or at most
+// 3 words that are each the site's name, a generic word, or a number.
 function isVague(title, rawUrl, siteName) {
   const w = words(title);
   if (!w.length) return true;
+  if (w.length <= 5 && GREETING.test(title)) return true;
   if (w.length > 3) return false;
   const site = siteWords(rawUrl, siteName);
   return w.every((x) => site.has(x) || GENERIC_WORDS.has(x) || /^\d+$/.test(x));
@@ -116,19 +128,41 @@ function isIdLike(s) {
 // Builds a name for a tab whose own title is vague. The description comes
 // first, and the URL's ID follows in parentheses. Returns null when the page
 // offers nothing better than its own title.
-// page: { url, title, siteName, headings: [string] }
+// page: { url, title, siteName, headings, subheadings, shareTitles }
+//   headings: h1 text. subheadings: large h2 and h3 text near the top.
+//   shareTitles: og:title and twitter:title.
+// Subheadings are often section names ("Folders", "Tue, Oct 20"), so they
+// count only on pages whose URL has an ID, and only with 2 or more words.
 // With needHeading set, a page without a usable heading gets no name.
 function autoName(page, needHeading = false) {
-  const descriptor = (page.headings || [])
+  const ref = urlId(page.url);
+  const subheadings = ref ? (page.subheadings || []).filter((h) => words(h).length >= 2) : [];
+  const descriptor = [...(page.headings || []), ...subheadings, ...(page.shareTitles || [])]
     .map((h) => (h || "").replace(/\s+/g, " ").trim())
     .find((h) => h && h.length <= 120 && !isVague(h, page.url, page.siteName) && h !== page.title);
-  const ref = urlId(page.url);
   if (descriptor) {
-    if (!ref || descriptor.includes(ref.id)) return descriptor;
+    if (!ref) return descriptor;
+    if (new RegExp(`(?<![\\w])${escapeRe(ref.id)}(?![\\w])`).test(descriptor)) return idLast(descriptor, ref.id);
     return `${descriptor} (${ref.id})`;
   }
   if (ref && !needHeading) return ref.type ? `${ref.type} ${ref.id}` : ref.id;
   return null;
+}
+
+// Moves an ID at the start or end of a heading to the end, in parentheses:
+// "(44749) Launch review" and "44749 - Launch review" give "Launch review (44749)".
+// An ID in the middle stays where it is.
+function escapeRe(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function idLast(text, id) {
+  const esc = escapeRe(id);
+  const sep = "[-:|–—]";
+  const lead = new RegExp(`^[\\s(\\[#]*${esc}(?![\\w])[\\s)\\]]*${sep}?\\s*`);
+  const tail = new RegExp(`\\s*${sep}?[\\s(\\[#]*(?<![\\w])${esc}[\\s)\\]]*$`);
+  const rest = text.replace(lead, "").replace(tail, "").trim();
+  return rest && rest !== text ? `${rest} (${id})` : text;
 }
 
 if (typeof module !== "undefined") module.exports = { urlKey, isVague, urlId, autoName };

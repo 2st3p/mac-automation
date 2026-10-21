@@ -44,16 +44,23 @@ key, because Chrome's built-in shortcut runs first.
 
 Tab Tools lives in `chrome/copy-url/`. The folder keeps its old name because
 Chrome ties an unpacked extension's ID, settings, and shortcuts to its folder.
+Its icon PNGs are drawn from `icons/icon-small.svg` (16 and 32 pixels) and
+`icons/icon.svg` (48 and 128 pixels). After editing an SVG, render the PNGs again.
 
 How Tab Tools names a tab:
 
 - A title is vague when it has at most 3 words and each word is the site's
-  name, a generic word such as "Home", or a number.
+  name, a generic word such as "Home", a date word, or a number. A greeting of
+  at most 5 words, such as "Good afternoon, Erik", is also vague.
 - When two tabs with different URLs share a clear title, each gets its
   heading as a name only if the headings differ. Otherwise both keep the title.
-- The automatic name is the page's main heading, then its share title
-  (`og:title`). The ID from the URL follows in parentheses, as in
-  "Launch review (12345)". With no heading, the name is the page type and ID.
+- The automatic name is the page's `h1`, then the largest `h2` or `h3` in the
+  top 500 pixels, then its share title (`og:title`). The `h2` or `h3` counts
+  only when the URL has an ID and the heading has 2 or more words, because on
+  home and list pages those headings name sections. The ID from the URL
+  follows in parentheses, as in "Launch review (12345)". An ID at the start of
+  a heading, as in "(12345) Launch review", moves to the end. With no
+  heading, the name is the page type and ID.
 - Names you set are stored on this Mac by URL. Tracking parameters such as
   `utm_` do not change the URL a name belongs to.
 - The extension changes only the page title, so the site's icon stays.
