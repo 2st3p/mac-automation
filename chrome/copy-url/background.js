@@ -33,6 +33,10 @@ async function ensureAlarm() {
   if (!(await chrome.alarms.get("auto-close"))) {
     chrome.alarms.create("auto-close", { periodInMinutes: TICK_MINUTES });
   }
+  if (!(await chrome.alarms.get("bookmark-plan"))) {
+    chrome.alarms.create("bookmark-plan", { periodInMinutes: 1 });
+  }
+  applyBookmarkPlan();
   // Tabs count as unused only from the time auto-close first ran, so the
   // first run after install does not close every old tab at once.
   const { watchStart } = await chrome.storage.local.get("watchStart");
@@ -223,10 +227,121 @@ async function promptRename(tab) {
   }
 }
 
+// ---------- Bookmark plans
+
+// A bookmark-plan.json in this folder rearranges the bookmarks bar through Chrome's
+// bookmarks API, so sync sees a normal change. An unpacked extension reads its files
+// from disk, so a new plan is picked up within a minute without a reload. Each plan
+// runs once, keyed by its id. The plan holds work URLs, so git ignores it.
+//
+// { "id": "...", "archive": "Archived 2026-10-23",
+//   "remove": [{ "title": "Gmail", "url": "..." }, { "title": "Old folder" }],
+//   "folders": [{ "title": "Experiments", "children": [{ "title", "url" } or a folder] }] }
+//
+// Nothing is deleted. Top-level bar items named in "remove" (a bookmark when url is
+// given, a folder when not), and any bar folder that a "folders" entry replaces, move
+// into the "archive" folder under Other bookmarks. New folders go on the bar in order.
+// Worker startup and the alarm can both call this at once. Both would read "not run
+// yet" before either recorded the plan, and apply it twice. One shared run prevents that.
+let planRun = null;
+function applyBookmarkPlan() {
+  planRun ??= runBookmarkPlan().finally(() => (planRun = null));
+  return planRun;
+}
+
+async function runBookmarkPlan() {
+  let plan;
+  try {
+    const res = await fetch(chrome.runtime.getURL("bookmark-plan.json"), { cache: "no-store" });
+    if (!res.ok) return;
+    plan = await res.json();
+  } catch {
+    return; // No plan file.
+  }
+  const { bookmarkPlans = [] } = await chrome.storage.local.get("bookmarkPlans");
+  if (!plan.id || bookmarkPlans.some((p) => p.id === plan.id)) return;
+  // Record the plan before acting, so an overlapping alarm cannot run it twice.
+  const result = { id: plan.id, at: new Date().toISOString(), archived: 0, created: 0, errors: [] };
+  await chrome.storage.local.set({ bookmarkPlans: [result, ...bookmarkPlans].slice(0, 20) });
+
+  const [root] = await chrome.bookmarks.getTree();
+  const [bar, other] = root.children;
+  const topLevel = () => chrome.bookmarks.getChildren(bar.id);
+  let archiveId;
+  const archive = async (node) => {
+    try {
+      if (!archiveId) {
+        const name = plan.archive || `Archived ${result.at.slice(0, 10)}`;
+        const existing = (await chrome.bookmarks.getChildren(other.id)).find((n) => !n.url && n.title === name);
+        archiveId = (existing || (await chrome.bookmarks.create({ parentId: other.id, title: name }))).id;
+      }
+      await chrome.bookmarks.move(node.id, { parentId: archiveId });
+      result.archived++;
+    } catch (e) {
+      result.errors.push(`archive ${node.title}: ${e.message}`);
+    }
+  };
+
+  for (const r of plan.remove || []) {
+    for (const node of await topLevel()) {
+      if (node.title === r.title && (r.url ? node.url === r.url : !node.url)) await archive(node);
+    }
+  }
+  for (const folder of plan.folders || []) {
+    for (const node of await topLevel()) {
+      if (!node.url && node.title === folder.title) await archive(node);
+    }
+    await createTree(bar.id, folder, result);
+  }
+  if (plan.dedupe) {
+    await dedupe(bar.id, result);
+    await dedupe(other.id, result);
+  }
+
+  const { bookmarkPlans: saved = [] } = await chrome.storage.local.get("bookmarkPlans");
+  await chrome.storage.local.set({ bookmarkPlans: saved.map((p) => (p.id === plan.id ? result : p)) });
+}
+
+// Removes a top-level folder only when it loses nothing: it is an exact copy of an
+// earlier folder with the same title, or it is empty and a same-titled folder has content.
+async function dedupe(parentId, result) {
+  const [parent] = await chrome.bookmarks.getSubTree(parentId);
+  const sig = (n) => JSON.stringify([n.title, n.url || null, (n.children || []).map(sig)]);
+  const kept = new Map();
+  result.deduped ??= 0;
+  const folders = (parent.children || []).filter((n) => !n.url);
+  for (const node of folders) {
+    const same = folders.filter((f) => f !== node && f.title === node.title);
+    const isCopy = (kept.get(node.title) || []).some((k) => sig(k) === sig(node));
+    const isEmptyTwin = !node.children.length && same.some((f) => f.children.length);
+    if (isCopy || isEmptyTwin) {
+      try {
+        await chrome.bookmarks.removeTree(node.id);
+        result.deduped++;
+      } catch (e) {
+        result.errors.push(`dedupe ${node.title}: ${e.message}`);
+      }
+    } else {
+      kept.set(node.title, [...(kept.get(node.title) || []), node]);
+    }
+  }
+}
+
+async function createTree(parentId, node, result) {
+  try {
+    const made = await chrome.bookmarks.create({ parentId, title: node.title, url: node.url });
+    result.created++;
+    for (const child of node.children || []) await createTree(made.id, child, result);
+  } catch (e) {
+    result.errors.push(`create ${node.title}: ${e.message}`);
+  }
+}
+
 // ---------- Auto-close
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === "auto-close") autoClose();
+  else if (alarm.name === "bookmark-plan") applyBookmarkPlan();
 });
 
 async function autoClose() {

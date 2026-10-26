@@ -37,6 +37,7 @@ Mac uses this fixed path. A symlink does not work because Raycast resolves it.
 | Rename tab | Chrome extension (Tab Tools) | Cmd+Shift+E, or right-click the page | Sets a name for this tab's URL. An empty name goes back to the automatic name |
 | Tab names | Chrome extension (Tab Tools) | none | Names a tab when its title is vague or another tab shares it |
 | Close unused tabs | Chrome extension (Tab Tools) | none | Closes tabs you have not opened for 24 hours. Set the time on the options page |
+| Bookmark plans | Chrome extension (Tab Tools) | none | Applies a `bookmark-plan.json` dropped in its folder, within a minute. Replaced and removed items move to an archive folder under Other bookmarks |
 
 Copy URL replaces Chrome's Cmd+Shift+C (Inspect Elements). Inspect Elements
 keeps Cmd+Option+C, the same layout Dia uses. A Quick Action cannot take this
@@ -70,6 +71,10 @@ sound, or the front tab of each window. Unused time starts when you leave a
 tab, to within 15 minutes, and never before Tab Tools was installed. Time while
 the Mac sleeps or Chrome is closed does not count. The options page lists the
 last 50 tabs it closed.
+
+Bookmark plans come from the bookmarks-audit agent skill. The plan file holds work
+URLs, so `.gitignore` keeps it out of this repo. Each plan runs once, keyed by its id,
+and Tab Tools never deletes a bookmark.
 
 ## Rules
 
